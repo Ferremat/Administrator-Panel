@@ -55,3 +55,36 @@ export async function deleteCategory(id: string) {
   if (!res.ok) throw new Error('Failed to delete category');
   return res.json();
 }
+
+export async function fetchUsers() {
+  const res = await fetch(`${API_URL}/users/listar_usuarios`);
+  if (!res.ok) throw new Error('Failed to fetch users');
+  return res.json();
+}
+
+export async function fetchUserById(id: string) {
+  const res = await fetch(`${API_URL}/users/${id}`);
+  if (!res.ok) throw new Error('Failed to fetch user');
+  return res.json();
+}
+
+export async function createUser(data: any) {
+  const res = await fetch(`${API_URL}/users/create_user`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorBody = await res.text();
+    throw new Error(`Failed to create user: ${errorBody}`);
+  }
+  return res.json();
+}
+
+export async function deleteUser(id: string) {
+  const res = await fetch(`${API_URL}/users/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete user');
+  return res.json();
+}
