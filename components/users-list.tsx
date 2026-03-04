@@ -23,8 +23,18 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { fetchUsers, deleteUser } from "@/lib/api"
+import { fetchUsers, deleteUser, createUser } from "@/lib/api"
 import { toast } from "sonner"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 
 interface User {
   id: string;
@@ -39,6 +49,15 @@ export function UsersList() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newUser, setNewUser] = useState({
+    email: "",
+    username: "",
+    password: "",
+    firstName: "",
+    lastName: ""
+  })
 
   const loadUsers = async () => {
     try {
@@ -50,6 +69,29 @@ export function UsersList() {
       toast.error("Error al cargar usuarios")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setIsCreating(true)
+      await createUser(newUser)
+      toast.success("Usuario creado correctamente")
+      setIsDialogOpen(false)
+      setNewUser({
+        email: "",
+        username: "",
+        password: "",
+        firstName: "",
+        lastName: ""
+      })
+      loadUsers()
+    } catch (error) {
+      console.error("Error creating user:", error)
+      toast.error("Error al crear el usuario")
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -84,9 +126,81 @@ export function UsersList() {
           <h2 className="text-3xl font-bold tracking-tight">Usuarios</h2>
           <p className="text-muted-foreground">Gestiona los permisos y accesos de los usuarios.</p>
         </div>
-        <Button className="w-full md:w-auto">
-          <UserPlus className="mr-2 h-4 w-4" /> Añadir Usuario
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full md:w-auto">
+              <UserPlus className="mr-2 h-4 w-4" /> Añadir Usuario
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Añadir Nuevo Usuario</DialogTitle>
+              <DialogDescription>
+                Introduce los detalles del nuevo usuario aquí. Haz clic en guardar cuando termines.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCreateUser} className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="firstName" className="text-right">Nombre</Label>
+                <Input
+                  id="firstName"
+                  value={newUser.firstName}
+                  onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="lastName" className="text-right">Apellido</Label>
+                <Input
+                  id="lastName"
+                  value={newUser.lastName}
+                  onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="username" className="text-right">Usuario</Label>
+                <Input
+                  id="username"
+                  value={newUser.username}
+                  onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password" className="text-right">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={isCreating}>
+                  {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Guardar
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className="border-none shadow-premium">
