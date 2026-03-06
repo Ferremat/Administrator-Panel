@@ -15,6 +15,7 @@ import { Navbar } from "@/components/navbar"
 import { UsersList } from "@/components/users-list"
 import { OrdersList } from "@/components/orders-list"
 import { fetchProducts, fetchCategories, createProduct, createCategory, deleteProduct, deleteCategory } from "@/lib/api"
+import { toast } from "sonner"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts'
 
 const salesData = [
@@ -326,9 +327,12 @@ export function AdminDashboard() {
       await createProduct(productData)
       await loadData()
       setNewProduct({ name: "", description: "", price: "", stock: "", imageUrl: "", categoryId: "" })
+      toast.success("Producto creado correctamente", {
+        description: `"${productData.name}" ha sido añadido al inventario.`
+      })
     } catch (error) {
       console.error("Error creating product:", error)
-      alert("Error al crear producto")
+      toast.error("Error al crear el producto")
     }
   }
 
@@ -337,34 +341,38 @@ export function AdminDashboard() {
     if (!newCategory.trim()) return
 
     try {
-      await createCategory({ name: newCategory.trim() })
+      const categoryName = newCategory.trim()
+      await createCategory({ name: categoryName })
       await loadData()
       setNewCategory("")
+      toast.success("Categoría creada correctamente", {
+        description: `"${categoryName}" ha sido añadida al sistema.`
+      })
     } catch (error) {
       console.error("Error creating category:", error)
-      alert("Error al crear categoría")
+      toast.error("Error al crear la categoría")
     }
   }
 
   const handleDeleteProduct = async (id: string) => {
-     if(!confirm("¿Seguro que quieres borrar este producto?")) return;
      try {
        await deleteProduct(id)
        await loadData()
+       toast.success("Producto eliminado")
      } catch (error) {
        console.error("Error deleting product:", error)
-       alert("Error al borrar producto")
+       toast.error("Error al borrar el producto")
      }
   }
 
   const handleDeleteCategory = async (id: string) => {
-     if(!confirm("¿Seguro que quieres borrar esta categoría?")) return;
      try {
        await deleteCategory(id)
        await loadData()
+       toast.success("Categoría eliminada")
      } catch (error) {
        console.error("Error deleting category:", error)
-       alert("Error al borrar categoría")
+       toast.error("Error al borrar la categoría")
      }
   }
 

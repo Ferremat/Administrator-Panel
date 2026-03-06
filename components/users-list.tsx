@@ -34,6 +34,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 
 interface User {
@@ -51,6 +61,7 @@ export function UsersList() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<string | null>(null)
   const [newUser, setNewUser] = useState({
     email: "",
     username: "",
@@ -99,16 +110,17 @@ export function UsersList() {
     loadUsers()
   }, [])
 
-  const handleDelete = async (id: string) => {
-    if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
-      try {
-        await deleteUser(id)
-        toast.success("Usuario eliminado correctamente")
-        setUsers(users.filter(u => u.id !== id))
-      } catch (error) {
-        console.error("Error deleting user:", error)
-        toast.error("Error al eliminar el usuario")
-      }
+  const confirmDelete = async () => {
+    if (!userToDelete) return
+    try {
+      await deleteUser(userToDelete)
+      toast.success("Usuario eliminado correctamente")
+      setUsers(users.filter(u => u.id !== userToDelete))
+    } catch (error) {
+      console.error("Error deleting user:", error)
+      toast.error("Error al eliminar el usuario")
+    } finally {
+      setUserToDelete(null)
     }
   }
 
@@ -120,6 +132,23 @@ export function UsersList() {
   )
 
   return (
+    <>
+    <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta acción es irreversible. El usuario será eliminado permanentemente del sistema.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Sí, eliminar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -290,7 +319,7 @@ export function UsersList() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-destructive"
-                              onClick={() => handleDelete(user.id)}
+                              onClick={() => setUserToDelete(user.id)}
                             >
                               Eliminar
                             </DropdownMenuItem>
@@ -306,5 +335,6 @@ export function UsersList() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
