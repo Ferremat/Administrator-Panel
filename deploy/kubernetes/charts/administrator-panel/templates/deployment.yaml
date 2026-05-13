@@ -1,0 +1,28 @@
+{{- if .Values.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.container.name }}-deployment
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.app.container.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.container.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.container.name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: {{ .Values.app.container.name }}
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.container.Port }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.app.container.name }}-config
+{{- end }}
