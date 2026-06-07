@@ -1,3 +1,5 @@
+enabled: true
+
 app:
   image:
     repository: iferlop/administrator-panel
