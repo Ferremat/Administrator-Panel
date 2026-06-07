@@ -21,4 +21,4 @@ ingress:
   pathType: Prefix
 
 env:
-  NEXT_PUBLIC_API_URL: "http://api.ferremat.es/"
+  NEXT_PUBLIC_API_URL: "http://api.ferremat.es"

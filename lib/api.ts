@@ -1,5 +1,5 @@
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 export async function fetchProducts() {
   const res = await fetch(`${API_URL}/products/list_products`);
@@ -44,7 +44,11 @@ export async function createCategory(data: any) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to create category');
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error('Failed to create category. Status:', res.status, 'Body:', errorBody);
+    throw new Error(`Failed to create category: ${errorBody}`);
+  }
   return res.json();
 }
 
