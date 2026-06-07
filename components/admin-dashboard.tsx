@@ -61,6 +61,7 @@ export function AdminDashboard() {
   const [newCategory, setNewCategory] = useState("")
   const [isMounted, setIsMounted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const loadData = async () => {
     try {
@@ -263,9 +264,9 @@ export function AdminDashboard() {
                     </Select>
                   </div>
                   <div className="lg:col-span-3 flex justify-end">
-                    <Button type="submit" disabled={loading} className="px-8 shadow-sm">
+                    <Button type="submit" disabled={loading || isSubmitting} className="px-8 shadow-sm">
                       <Plus className="h-4 w-4 mr-2" />
-                      {loading ? 'Guardando...' : 'Registrar Producto'}
+                      {isSubmitting ? 'Guardando...' : 'Registrar Producto'}
                     </Button>
                   </div>
                 </form>
@@ -292,9 +293,9 @@ export function AdminDashboard() {
                     <Label htmlFor="category-name">Nombre</Label>
                     <Input id="category-name" placeholder="Ej: Herramientas Manuales" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
                   </div>
-                  <Button type="submit" disabled={loading} className="mt-8">
+                  <Button type="submit" disabled={loading || isSubmitting} className="mt-8">
                     <Plus className="h-4 w-4 mr-2" />
-                    {loading ? 'Creando...' : 'Añadir'}
+                    {isSubmitting ? 'Creando...' : 'Añadir'}
                   </Button>
                 </form>
               </CardContent>
@@ -314,7 +315,9 @@ export function AdminDashboard() {
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newProduct.name || !newProduct.price || !newProduct.categoryId) return
+    if (isSubmitting) return
 
+    setIsSubmitting(true)
     try {
       const productData = {
         name: newProduct.name,
@@ -333,13 +336,17 @@ export function AdminDashboard() {
     } catch (error) {
       console.error("Error creating product:", error)
       toast.error("Error al crear el producto")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newCategory.trim()) return
+    if (isSubmitting) return
 
+    setIsSubmitting(true)
     try {
       const categoryName = newCategory.trim()
       await createCategory({ name: categoryName })
@@ -351,6 +358,8 @@ export function AdminDashboard() {
     } catch (error) {
       console.error("Error creating category:", error)
       toast.error("Error al crear la categoría")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
