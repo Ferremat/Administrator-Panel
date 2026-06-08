@@ -57,10 +57,15 @@ spec:
         }
     }
 
+    triggers {
+        githubPush()
+    }
+
     environment {
-        DOCKER_USER = 'iferlop'
-        APP_NAME    = 'administrator-panel'
-        NAMESPACE   = 'ferremat-deploy'
+        DOCKER_USER       = 'iferlop'
+        APP_NAME          = 'administrator-panel'
+        NAMESPACE         = 'ferremat-deploy'
+        GIT_COMMIT_SHORT  = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
     }
 
     stages {
@@ -84,10 +89,12 @@ spec:
                     sh """
                     set -e
                     echo "Starting administrator-panel build..."
+                    echo "Commit: ${GIT_COMMIT_SHORT}  |  Build: ${BUILD_NUMBER}"
                     /kaniko/executor \\
                         --context `pwd` \\
                         --dockerfile Dockerfile \\
                         --destination ${DOCKER_USER}/${APP_NAME}:latest \\
+                        --destination ${DOCKER_USER}/${APP_NAME}:${BUILD_NUMBER}-${GIT_COMMIT_SHORT} \\
                         --cache=true \\
                         --cache-repo=${DOCKER_USER}/${APP_NAME}
                     echo "administrator-panel build completed successfully"
