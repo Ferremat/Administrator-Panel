@@ -134,7 +134,8 @@ spec:
                         # Commit y push — ArgoCD detectará el cambio y sincronizará
                         git add ${VALUES_FILE}
                         git diff --cached --quiet || git commit -m "ci: update ${APP_NAME} image to ${IMAGE_TAG} [skip ci]"
-                        git push https://\${GIT_USER}:\${GIT_TOKEN}@${GIT_REPO_URL#https://} HEAD:main
+                        REPO_NO_SCHEME=\$(echo "${GIT_REPO_URL}" | sed 's|https://||')
+                        git push https://\${GIT_USER}:\${GIT_TOKEN}@\${REPO_NO_SCHEME} HEAD:main
 
                         echo "✓ values.yaml pushed — ArgoCD will sync automatically"
                         """
