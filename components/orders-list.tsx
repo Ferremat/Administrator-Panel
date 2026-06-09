@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Search, Filter, MoreHorizontal, ShoppingBag, Calendar, CreditCard, Eye } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Search, Filter, MoreHorizontal, ShoppingBag, Calendar, CreditCard, Eye, Loader2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -22,23 +22,51 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { fetchOrders, updateOrderStatus } from "@/lib/api"
+import { toast } from "sonner"
 
-// Mock data for demonstration
-const mockOrders = [
-  { id: "ORD-1234", customer: "Roberto Gómez", date: "2024-02-20", total: "$125.00", status: "Delivered", items: 3 },
-  { id: "ORD-1235", customer: "Elena Rivas", date: "2024-02-21", total: "$45.50", status: "Processing", items: 1 },
-  { id: "ORD-1236", customer: "Marco Polo", date: "2024-02-22", total: "$230.00", status: "Shipped", items: 5 },
-  { id: "ORD-1237", customer: "Lucía Fernández", date: "2024-02-23", total: "$89.99", status: "Cancelled", items: 2 },
-  { id: "ORD-1238", customer: "Santi Valls", date: "2024-02-24", total: "$540.00", status: "Processing", items: 8 },
-]
+interface Order {
+  id: string
+  userId?: string
+  customerName?: string
+  customer?: string
+  date?: string
+  createdAt?: string
+  total?: number | string
+  amount?: number
+  status?: string
+  items?: number
+}
 
 export function OrdersList() {
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
 
-  const filteredOrders = mockOrders.filter(order => 
-    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.customer.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const loadOrders = async () => {
+    try {
+      setLoading(true)
+      const data = await fetchOrders()
+      setOrders(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error("Error fetching orders:", error)
+      toast.error("Error al cargar pedidos")
+      setOrders([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadOrders()
+  }, [])
+
+  const filteredOrders = orders.filter(order => {
+    const id = order.id || ""
+    const customer = order.customer || order.customerName || ""
+    return id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           customer.toLowerCase().includes(searchTerm.toLowerCase())
+  })
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -48,7 +76,7 @@ export function OrdersList() {
           <p className="text-muted-foreground">Monitorea y gestiona los pedidos de los clientes.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="w-full md:w-auto">
+          <Button variant="outline" className="w-full md:w-auto" disabled={loading}>
             Exportar CSV
           </Button>
           <Button className="w-full md:w-auto">
@@ -72,6 +100,9 @@ export function OrdersList() {
             <Button variant="outline" size="icon">
               <Filter className="h-4 w-4" />
             </Button>
+            <Button variant="outline" onClick={loadOrders} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refrescar"}
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -88,57 +119,76 @@ export function OrdersList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order.id} className="group transition-colors hover:bg-muted/50">
-                    <TableCell className="font-mono text-xs font-semibold">{order.id}</TableCell>
-                    <TableCell className="font-medium">{order.customer}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm">{order.date}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <CreditCard className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm font-semibold">{order.total}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={
-                          order.status === "Delivered" ? "default" : 
-                          order.status === "Processing" ? "secondary" : 
-                          order.status === "Shipped" ? "outline" : "destructive"
-                        }
-                        className="rounded-full font-normal"
-                      >
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Gestionar</DropdownMenuLabel>
-                            <DropdownMenuItem>Actualizar Estado</DropdownMenuItem>
-                            <DropdownMenuItem>Imprimir Factura</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">Cancelar Pedido</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      <div className="flex justify-center items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Cargando pedidos...
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : filteredOrders.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      No se encontraron pedidos.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredOrders.map((order) => (
+                    <TableRow key={order.id} className="group transition-colors hover:bg-muted/50">
+                      <TableCell className="font-mono text-xs font-semibold">{order.id}</TableCell>
+                      <TableCell className="font-medium">{order.customer || order.customerName || "N/A"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm">
+                            {order.date ? new Date(order.date).toLocaleDateString() : order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "N/A"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm font-semibold">${typeof order.total === "number" ? order.total.toFixed(2) : order.amount?.toFixed(2) || "0.00"}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            order.status === "Delivered" || order.status === "COMPLETED" ? "default" :
+                            order.status === "Processing" || order.status === "PENDING" ? "secondary" :
+                            order.status === "Shipped" ? "outline" : "destructive"
+                          }
+                          className="rounded-full font-normal"
+                        >
+                          {order.status || "N/A"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Gestionar</DropdownMenuLabel>
+                              <DropdownMenuItem>Actualizar Estado</DropdownMenuItem>
+                              <DropdownMenuItem>Imprimir Factura</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-destructive">Cancelar Pedido</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

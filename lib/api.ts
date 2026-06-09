@@ -92,3 +92,25 @@ export async function deleteUser(id: string) {
   if (!res.ok) throw new Error('Failed to delete user');
   return res.json();
 }
+
+export async function fetchOrders() {
+  const res = await fetch(`${API_URL}/orders/list_orders`);
+  if (!res.ok) throw new Error('Failed to fetch orders');
+  return res.json();
+}
+
+export async function fetchOrderById(id: string) {
+  const res = await fetch(`${API_URL}/orders/${id}`);
+  if (!res.ok) throw new Error('Failed to fetch order');
+  return res.json();
+}
+
+export async function updateOrderStatus(id: string, status: string) {
+  const res = await fetch(`${API_URL}/orders/update_status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, status }),
+  });
+  if (!res.ok) throw new Error('Failed to update order status');
+  return res.json();
+}
