@@ -126,7 +126,7 @@ spec:
 
                         # Actualizar el tag en values.yaml
                         echo "Updating image tag to ${IMAGE_TAG} in ${VALUES_FILE}..."
-                        sed -i "s|^  tag:.*|  tag: ${IMAGE_TAG}|" ${VALUES_FILE}
+                        sed -i "s|^    tag:.*|    tag: ${IMAGE_TAG}|" ${VALUES_FILE}
 
                         echo "--- values.yaml after update ---"
                         cat ${VALUES_FILE}
