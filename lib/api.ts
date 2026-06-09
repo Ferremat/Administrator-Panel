@@ -29,6 +29,20 @@ export async function createProduct(data: any) {
   return res.json();
 }
 
+export async function updateProduct(id: string, data: any) {
+  const res = await fetch(`${API_URL}/products/update_product/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error('Failed to update product. Status:', res.status, 'Body:', errorBody);
+    throw new Error(`Failed to update product: ${errorBody}`);
+  }
+  return res.json();
+}
+
 export async function deleteProduct(id: string) {
     // Note: The controller uses query params for delete: ?id=...
   const res = await fetch(`${API_URL}/products/delete_product?id=${id}`, {
