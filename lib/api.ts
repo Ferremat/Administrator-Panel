@@ -29,6 +29,20 @@ export async function createProduct(data: any) {
   return res.json();
 }
 
+export async function updateProduct(id: string, data: any) {
+  const res = await fetch(`${API_URL}/products/update_product/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error('Failed to update product. Status:', res.status, 'Body:', errorBody);
+    throw new Error(`Failed to update product: ${errorBody}`);
+  }
+  return res.json();
+}
+
 export async function deleteProduct(id: string) {
     // Note: The controller uses query params for delete: ?id=...
   const res = await fetch(`${API_URL}/products/delete_product?id=${id}`, {
@@ -90,5 +104,27 @@ export async function deleteUser(id: string) {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error('Failed to delete user');
+  return res.json();
+}
+
+export async function fetchOrders() {
+  const res = await fetch(`${API_URL}/orders/list_orders`);
+  if (!res.ok) throw new Error('Failed to fetch orders');
+  return res.json();
+}
+
+export async function fetchOrderById(id: string) {
+  const res = await fetch(`${API_URL}/orders/${id}`);
+  if (!res.ok) throw new Error('Failed to fetch order');
+  return res.json();
+}
+
+export async function updateOrderStatus(id: string, status: string) {
+  const res = await fetch(`${API_URL}/orders/update_status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, status }),
+  });
+  if (!res.ok) throw new Error('Failed to update order status');
   return res.json();
 }
