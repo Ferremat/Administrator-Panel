@@ -272,7 +272,7 @@ export function AdminDashboard() {
                 </form>
               </CardContent>
             </Card>
-            <ProductList products={products} categories={categories} onDelete={handleDeleteProduct} />
+            <ProductList products={products} categories={categories} onDelete={handleDeleteProduct} onUpdate={loadData} />
           </div>
         )
       case "categories":
