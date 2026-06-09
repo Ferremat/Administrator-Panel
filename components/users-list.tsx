@@ -50,8 +50,7 @@ interface User {
   id: string;
   email: string;
   username: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   createdAt: string;
 }
 
@@ -66,8 +65,7 @@ export function UsersList() {
     email: "",
     username: "",
     password: "",
-    firstName: "",
-    lastName: ""
+    name: ""
   })
 
   const loadUsers = async () => {
@@ -94,8 +92,7 @@ export function UsersList() {
         email: "",
         username: "",
         password: "",
-        firstName: "",
-        lastName: ""
+        name: ""
       })
       loadUsers()
     } catch (error) {
@@ -124,9 +121,8 @@ export function UsersList() {
     }
   }
 
-  const filteredUsers = users.filter(user => 
-    user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -170,21 +166,12 @@ export function UsersList() {
             </DialogHeader>
             <form onSubmit={handleCreateUser} className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="firstName" className="text-right">Nombre</Label>
+                <Label htmlFor="name" className="text-right">Nombre Completo</Label>
                 <Input
-                  id="firstName"
-                  value={newUser.firstName}
-                  onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="lastName" className="text-right">Apellido</Label>
-                <Input
-                  id="lastName"
-                  value={newUser.lastName}
-                  onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                  id="name"
+                  placeholder="Ej: Juan Pérez"
+                  value={newUser.name}
+                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
                   className="col-span-3"
                   required
                 />
@@ -286,10 +273,10 @@ export function UsersList() {
                     <TableRow key={user.id} className="group transition-colors hover:bg-muted/50">
                       <TableCell>
                         <Avatar className="h-9 w-9 border">
-                          <AvatarFallback>{user.firstName.charAt(0)}{user.lastName.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>{user.name.charAt(0)}{user.name.split(' ')[1]?.charAt(0) || ''}</AvatarFallback>
                         </Avatar>
                       </TableCell>
-                      <TableCell className="font-medium">{user.firstName} {user.lastName}</TableCell>
+                      <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold">@{user.username}</span>
