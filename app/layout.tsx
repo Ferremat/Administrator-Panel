@@ -31,6 +31,8 @@ export const metadata: Metadata = {
 
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from 'sonner'
+import { AuthProvider } from '@/lib/auth-context'
+import { LayoutWrapper } from '@/components/layout-wrapper'
 
 export default function RootLayout({
   children,
@@ -46,7 +48,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthProvider>
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+          </AuthProvider>
           <Toaster richColors position="top-right" />
           <Analytics />
         </ThemeProvider>

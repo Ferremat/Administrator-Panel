@@ -1,7 +1,9 @@
 "use client"
 
-import { Bell, Search, User, Moon, Sun } from "lucide-react"
+import { Bell, Search, User, Moon, Sun, LogOut } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -16,6 +18,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function Navbar() {
   const { theme, setTheme } = useTheme()
+  const { logout, username } = useAuth()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background/80 px-6 backdrop-blur-md">
@@ -62,7 +71,7 @@ export function Navbar() {
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Administrador</p>
+                <p className="text-sm font-medium leading-none capitalize">{username || 'Administrador'}</p>
                 <p className="text-xs leading-none text-muted-foreground">admin@ferremat.es</p>
               </div>
             </DropdownMenuLabel>
@@ -71,7 +80,13 @@ export function Navbar() {
             <DropdownMenuItem>Facturación</DropdownMenuItem>
             <DropdownMenuItem>Ajustes</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">Cerrar Sesión</DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive cursor-pointer"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Cerrar Sesión
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
