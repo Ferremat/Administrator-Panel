@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { loginUser } from './api';
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -12,9 +13,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// URL del backend (ms-client-gateway)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -38,26 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (inputEmail: string, inputPassword: string): Promise<{ success: boolean; message?: string }> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: inputEmail,
-          password: inputPassword,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        return {
-          success: false,
-          message: errorData.message || 'Email o contraseña incorrectos',
-        };
-      }
-
-      const userData = await response.json();
+      const userData = await loginUser(inputEmail, inputPassword);
 
       setUsername(userData.username || userData.name);
       setEmail(userData.email);
@@ -67,6 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('adminUsername', userData.username || userData.name);
       localStorage.setItem('adminEmail', userData.email);
       localStorage.setItem('adminUserId', userData.id);
+      if (userData.token) {
+        localStorage.setItem('adminToken', userData.token);
+      }
       localStorage.setItem('adminAuthTime', new Date().toISOString());
 
       return { success: true };
@@ -74,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error logging in:', error);
       return {
         success: false,
-        message: 'Error al conectar con el servidor',
+        message: error instanceof Error ? error.message : 'Error al conectar con el servidor',
       };
     }
   };

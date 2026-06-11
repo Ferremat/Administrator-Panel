@@ -1,6 +1,19 @@
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
+export async function loginUser(email: string, password: string) {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const errorBody = await res.text();
+    throw new Error(`Failed to login: ${errorBody}`);
+  }
+  return res.json();
+}
+
 export async function fetchProducts() {
   const res = await fetch(`${API_URL}/products/list_products`);
   if (!res.ok) throw new Error('Failed to fetch products');
