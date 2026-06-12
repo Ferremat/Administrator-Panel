@@ -3,7 +3,7 @@ enabled: true
 app:
   image:
     repository: iferlop/administrator-panel
-    tag: 17-b463297
+    tag: 18-f306ea1
     pullPolicy: Always
   containerPort: 3000
   container:
