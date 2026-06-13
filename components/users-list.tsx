@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { fetchUsers, deleteUser, createUser, updateUser, fetchUserOrders } from "@/lib/api"
+import { fetchUsers, deleteUser, createUser, updateUser, fetchOrdersByUser } from "@/lib/api"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -120,7 +120,7 @@ export function UsersList() {
     try {
       setIsLoadingOrders(true)
       setSelectedUserName(user.name)
-      const orders = await fetchUserOrders(user.id)
+      const orders = await fetchOrdersByUser(user.id)
       setSelectedUserOrders(orders || [])
       setIsOrdersDialogOpen(true)
     } catch (error) {
