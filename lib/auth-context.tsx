@@ -7,6 +7,8 @@ interface AuthContextType {
   isLoggedIn: boolean;
   username: string | null;
   email: string | null;
+  role: string | null;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   isLoading: boolean;
@@ -18,18 +20,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Verificar si el usuario está logueado al montar el componente
   useEffect(() => {
     const savedUsername = localStorage.getItem('adminUsername');
     const savedEmail = localStorage.getItem('adminEmail');
+    const savedRole = localStorage.getItem('adminRole');
     const savedToken = localStorage.getItem('adminToken');
 
-    if (savedUsername && savedEmail && savedToken) {
+    if (savedUsername && savedEmail && savedToken && savedRole === 'admin') {
       setUsername(savedUsername);
       setEmail(savedEmail);
+      setRole(savedRole);
       setIsLoggedIn(true);
+    } else {
+      // Si no es admin o no hay token, limpiar localStorage
+      localStorage.removeItem('adminUsername');
+      localStorage.removeItem('adminEmail');
+      localStorage.removeItem('adminRole');
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUserId');
     }
     setIsLoading(false);
   }, []);
@@ -38,13 +50,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userData = await loginUser(inputEmail, inputPassword);
 
+      // Verificar que el usuario sea administrador
+      if (userData.roll !== 'admin') {
+        return {
+          success: false,
+          message: 'Acceso denegado. Solo administradores pueden acceder al panel.',
+        };
+      }
+
       setUsername(userData.username || userData.name);
       setEmail(userData.email);
+      setRole(userData.roll);
       setIsLoggedIn(true);
 
       // Guardar en localStorage (sin contraseña)
       localStorage.setItem('adminUsername', userData.username || userData.name);
       localStorage.setItem('adminEmail', userData.email);
+      localStorage.setItem('adminRole', userData.roll);
       localStorage.setItem('adminUserId', userData.id);
       if (userData.token) {
         localStorage.setItem('adminToken', userData.token);
@@ -64,15 +86,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUsername(null);
     setEmail(null);
+    setRole(null);
     setIsLoggedIn(false);
     localStorage.removeItem('adminUsername');
     localStorage.removeItem('adminEmail');
+    localStorage.removeItem('adminRole');
     localStorage.removeItem('adminUserId');
+    localStorage.removeItem('adminToken');
     localStorage.removeItem('adminAuthTime');
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, username, email, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isLoggedIn, username, email, role, isAdmin: role === 'admin', login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
