@@ -49,14 +49,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (inputEmail: string, inputPassword: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const userData = await loginUser(inputEmail, inputPassword);
+      console.log('DEBUG AUTH: userData returned from login:', userData);
+      console.log('DEBUG AUTH: userData.roll =', userData.roll);
 
       // Verificar que el usuario sea administrador
       if (userData.roll !== 'admin') {
+        console.log('DEBUG AUTH: User role is not admin, denying access');
         return {
           success: false,
           message: 'Acceso denegado. Solo administradores pueden acceder al panel.',
         };
       }
+      console.log('DEBUG AUTH: User is admin, allowing access');
 
       setUsername(userData.username || userData.name);
       setEmail(userData.email);
