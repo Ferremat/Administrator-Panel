@@ -13,8 +13,9 @@ import { CategoryList } from "@/components/category-list"
 import { Sidebar } from "@/components/sidebar"
 import { Navbar } from "@/components/navbar"
 import { UsersList } from "@/components/users-list"
+import { ProfilesList } from "@/components/profiles-list"
 import { OrdersList } from "@/components/orders-list"
-import { fetchProducts, fetchCategories, createProduct, createCategory, deleteProduct, deleteCategory } from "@/lib/api"
+import { fetchProducts, fetchCategories, createProduct, createCategory, deleteProduct, deleteCategory, getUsersCount, getPendingOrdersCount } from "@/lib/api"
 import { toast } from "sonner"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts'
 
@@ -49,14 +50,16 @@ export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
-  
-  const [newProduct, setNewProduct] = useState({ 
-    name: "", 
-    description: "", 
-    price: "", 
-    stock: "", 
-    imageUrl: "", 
-    categoryId: "" 
+  const [usersCount, setUsersCount] = useState(0)
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0)
+
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    description: "",
+    price: "",
+    stock: "",
+    imageUrl: "",
+    categoryId: ""
   })
   const [newCategory, setNewCategory] = useState("")
   const [isMounted, setIsMounted] = useState(false)
@@ -66,12 +69,16 @@ export function AdminDashboard() {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [productsData, categoriesData] = await Promise.all([
+      const [productsData, categoriesData, users, orders] = await Promise.all([
         fetchProducts(),
-        fetchCategories()
+        fetchCategories(),
+        getUsersCount(),
+        getPendingOrdersCount()
       ])
       setProducts(productsData)
       setCategories(categoriesData)
+      setUsersCount(users)
+      setPendingOrdersCount(orders)
     } catch (error) {
       console.error("Error loading data:", error)
     } finally {
@@ -121,12 +128,12 @@ export function AdminDashboard() {
 
               <Card className="border-none shadow-premium hover:shadow-premium-hover transition-all duration-300 border-l-4 border-l-primary/50">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Usuarios Activos</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Usuarios Registrados</CardTitle>
                   <Users className="h-5 w-5 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">1,284</div>
-                  <p className="text-xs text-emerald-500 mt-1">+12% desde el mes pasado</p>
+                  <div className="text-3xl font-bold">{usersCount}</div>
+                  <p className="text-xs text-emerald-500 mt-1">usuarios activos en el sistema</p>
                 </CardContent>
               </Card>
 
@@ -136,7 +143,7 @@ export function AdminDashboard() {
                   <ShoppingCart className="h-5 w-5 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">24</div>
+                  <div className="text-3xl font-bold">{pendingOrdersCount}</div>
                   <p className="text-xs text-amber-500 mt-1">Requieren atención pronto</p>
                 </CardContent>
               </Card>
@@ -305,6 +312,8 @@ export function AdminDashboard() {
         )
       case "users":
         return <UsersList />
+      case "profiles":
+        return <ProfilesList />
       case "orders":
         return <OrdersList />
       default:

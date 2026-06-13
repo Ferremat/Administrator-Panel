@@ -93,6 +93,11 @@ export async function fetchUsers() {
   return res.json();
 }
 
+export async function getUsersCount() {
+  const users = await fetchUsers();
+  return users.length;
+}
+
 export async function fetchUserById(id: string) {
   const res = await fetch(`${API_URL}/users/${id}`);
   if (!res.ok) throw new Error('Failed to fetch user');
@@ -139,6 +144,11 @@ export async function fetchOrders() {
   return res.json();
 }
 
+export async function getPendingOrdersCount() {
+  const orders = await fetchOrders();
+  return orders.filter((order: any) => order.status !== 'completed' && order.status !== 'cancelled').length;
+}
+
 export async function fetchOrderById(id: string) {
   const res = await fetch(`${API_URL}/orders/${id}`);
   if (!res.ok) throw new Error('Failed to fetch order');
@@ -152,5 +162,45 @@ export async function updateOrderStatus(id: string, status: string) {
     body: JSON.stringify({ id, status }),
   });
   if (!res.ok) throw new Error('Failed to update order status');
+  return res.json();
+}
+
+export async function fetchProfiles() {
+  const res = await fetch(`${API_URL}/profile/list_profiles`);
+  if (!res.ok) throw new Error('Failed to fetch profiles');
+  return res.json();
+}
+
+export async function createProfile(data: any) {
+  const res = await fetch(`${API_URL}/profile/create_profile`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorBody = await res.text();
+    throw new Error(`Failed to create profile: ${errorBody}`);
+  }
+  return res.json();
+}
+
+export async function updateProfile(id: string, data: any) {
+  const res = await fetch(`${API_URL}/profile/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorBody = await res.text();
+    throw new Error(`Failed to update profile: ${errorBody}`);
+  }
+  return res.json();
+}
+
+export async function deleteProfile(id: string) {
+  const res = await fetch(`${API_URL}/profile/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete profile');
   return res.json();
 }

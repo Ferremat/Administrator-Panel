@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Home, Package, FolderTree, Users, ShoppingCart, Settings, ChevronLeft, ChevronRight, LogOut } from "lucide-react"
+import { Home, Package, FolderTree, Users, UserCheck, ShoppingCart, Settings, ChevronLeft, ChevronRight, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -18,6 +18,7 @@ const navItems = [
   { id: "products", label: "Productos", icon: Package },
   { id: "categories", label: "Categorías", icon: FolderTree },
   { id: "users", label: "Usuarios", icon: Users },
+  { id: "profiles", label: "Perfiles", icon: UserCheck },
   { id: "orders", label: "Pedidos", icon: ShoppingCart },
 ]
 
