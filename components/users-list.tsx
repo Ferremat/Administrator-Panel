@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, CheckCircle2, XCircle, Loader2 } from "lucide-react"
+import { Search, Filter, MoreHorizontal, UserPlus, Mail, Shield, CheckCircle2, XCircle, Loader2, ShoppingBag } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { fetchUsers, deleteUser, createUser, updateUser } from "@/lib/api"
+import { fetchUsers, deleteUser, createUser, updateUser, fetchUserOrders } from "@/lib/api"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -86,6 +86,10 @@ export function UsersList() {
     roll: "",
     password: ""
   })
+  const [isOrdersDialogOpen, setIsOrdersDialogOpen] = useState(false)
+  const [selectedUserOrders, setSelectedUserOrders] = useState<any[]>([])
+  const [selectedUserName, setSelectedUserName] = useState("")
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false)
 
   const loadUsers = async () => {
     try {
@@ -110,6 +114,21 @@ export function UsersList() {
       password: ""
     })
     setIsEditDialogOpen(true)
+  }
+
+  const handleViewOrders = async (user: User) => {
+    try {
+      setIsLoadingOrders(true)
+      setSelectedUserName(user.name)
+      const orders = await fetchUserOrders(user.id)
+      setSelectedUserOrders(orders || [])
+      setIsOrdersDialogOpen(true)
+    } catch (error) {
+      console.error("Error fetching user orders:", error)
+      toast.error("Error al cargar el historial de pedidos")
+    } finally {
+      setIsLoadingOrders(false)
+    }
   }
 
   const handleUpdateUser = async (e: React.FormEvent) => {
@@ -190,6 +209,67 @@ export function UsersList() {
 
   return (
     <>
+    <Dialog open={isOrdersDialogOpen} onOpenChange={setIsOrdersDialogOpen}>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Historial de Pedidos - {selectedUserName}</DialogTitle>
+          <DialogDescription>
+            Todos los pedidos realizados por este usuario
+          </DialogDescription>
+        </DialogHeader>
+        {isLoadingOrders ? (
+          <div className="flex justify-center items-center gap-2 py-8">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Cargando pedidos...
+          </div>
+        ) : selectedUserOrders.length === 0 ? (
+          <div className="py-8 text-center text-muted-foreground">
+            No hay pedidos registrados para este usuario
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {selectedUserOrders.map((order: any) => (
+              <Card key={order.id} className="p-4">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">ID del Pedido</p>
+                    <p className="font-semibold text-sm truncate">{order.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Fecha</p>
+                    <p className="font-semibold text-sm">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="font-semibold text-sm">${order.total?.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Estado</p>
+                    <Badge variant={order.status === 'completed' ? 'default' : order.status === 'pending' ? 'secondary' : 'destructive'}>
+                      {order.status || 'Pendiente'}
+                    </Badge>
+                  </div>
+                </div>
+                {order.items && order.items.length > 0 && (
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-xs text-muted-foreground mb-2">Artículos:</p>
+                    <div className="space-y-1">
+                      {order.items.map((item: any, idx: number) => (
+                        <p key={idx} className="text-sm">
+                          {item.product?.name || `Producto ${item.productId}`} x{item.quantity}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
     <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -456,6 +536,9 @@ export function UsersList() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => handleOpenEdit(user)}>Editar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewOrders(user)}>
+                              <ShoppingBag className="mr-2 h-4 w-4" /> Ver historial de pedidos
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive"

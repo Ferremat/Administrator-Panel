@@ -149,6 +149,12 @@ export async function getPendingOrdersCount() {
   return orders.filter((order: any) => order.status !== 'completed' && order.status !== 'cancelled').length;
 }
 
+export async function fetchOrdersByUser(userId: string) {
+  const res = await fetch(`${API_URL}/orders/user/${userId}`);
+  if (!res.ok) throw new Error('Failed to fetch user orders');
+  return res.json();
+}
+
 export async function fetchOrderById(id: string) {
   const res = await fetch(`${API_URL}/orders/${id}`);
   if (!res.ok) throw new Error('Failed to fetch order');
