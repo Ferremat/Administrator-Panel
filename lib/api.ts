@@ -112,6 +112,19 @@ export async function createUser(data: any) {
   return res.json();
 }
 
+export async function updateUser(id: string, data: any) {
+  const res = await fetch(`${API_URL}/users/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorBody = await res.text();
+    throw new Error(`Failed to update user: ${errorBody}`);
+  }
+  return res.json();
+}
+
 export async function deleteUser(id: string) {
   const res = await fetch(`${API_URL}/users/${id}`, {
     method: 'DELETE',
