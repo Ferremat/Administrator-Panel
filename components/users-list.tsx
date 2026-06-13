@@ -45,12 +45,20 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface User {
   id: string;
   email: string;
   username: string;
   name: string;
+  roll: string;
   createdAt: string;
 }
 
@@ -68,12 +76,14 @@ export function UsersList() {
     email: "",
     username: "",
     password: "",
-    name: ""
+    name: "",
+    roll: "user"
   })
   const [editUserData, setEditUserData] = useState({
     email: "",
     username: "",
     name: "",
+    roll: "",
     password: ""
   })
 
@@ -96,6 +106,7 @@ export function UsersList() {
       email: user.email,
       username: user.username,
       name: user.name,
+      roll: user.roll,
       password: ""
     })
     setIsEditDialogOpen(true)
@@ -118,6 +129,7 @@ export function UsersList() {
         email: "",
         username: "",
         name: "",
+        roll: "",
         password: ""
       })
       loadUsers()
@@ -140,7 +152,8 @@ export function UsersList() {
         email: "",
         username: "",
         password: "",
-        name: ""
+        name: "",
+        roll: "user"
       })
       loadUsers()
     } catch (error) {
@@ -246,6 +259,18 @@ export function UsersList() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="roll" className="text-right">Rol</Label>
+                <Select value={newUser.roll} onValueChange={(value) => setNewUser({ ...newUser, roll: value })}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Selecciona un rol" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">Usuario</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="password" className="text-right">Password</Label>
                 <Input
                   id="password"
@@ -308,6 +333,18 @@ export function UsersList() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-roll" className="text-right">Rol</Label>
+                <Select value={editUserData.roll} onValueChange={(value) => setEditUserData({ ...editUserData, roll: value })}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Selecciona un rol" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">Usuario</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-password" className="text-right">Contraseña</Label>
                 <Input
                   id="edit-password"
@@ -358,6 +395,7 @@ export function UsersList() {
                   <TableHead>Nombre Completo</TableHead>
                   <TableHead>Usuario</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Rol</TableHead>
                   <TableHead>Fecha de Creación</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -365,7 +403,7 @@ export function UsersList() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       <div className="flex justify-center items-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Cargando usuarios...
@@ -374,7 +412,7 @@ export function UsersList() {
                   </TableRow>
                 ) : filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       No se encontraron usuarios.
                     </TableCell>
                   </TableRow>
@@ -397,6 +435,11 @@ export function UsersList() {
                           <Mail className="h-3 w-3 text-muted-foreground" />
                           <span className="text-sm">{user.email}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={user.roll === 'admin' ? 'default' : 'secondary'}>
+                          {user.roll === 'admin' ? 'Administrador' : 'Usuario'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-muted-foreground">
