@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { fetchUsers, deleteUser, createUser } from "@/lib/api"
+import { fetchUsers, deleteUser, createUser, updateUser } from "@/lib/api"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -59,13 +59,22 @@ export function UsersList() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
   const [userToDelete, setUserToDelete] = useState<string | null>(null)
+  const [userToEdit, setUserToEdit] = useState<User | null>(null)
   const [newUser, setNewUser] = useState({
     email: "",
     username: "",
     password: "",
     name: ""
+  })
+  const [editUserData, setEditUserData] = useState({
+    email: "",
+    username: "",
+    name: "",
+    password: ""
   })
 
   const loadUsers = async () => {
@@ -78,6 +87,45 @@ export function UsersList() {
       toast.error("Error al cargar usuarios")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleOpenEdit = (user: User) => {
+    setUserToEdit(user)
+    setEditUserData({
+      email: user.email,
+      username: user.username,
+      name: user.name,
+      password: ""
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!userToEdit) return
+    try {
+      setIsUpdating(true)
+      const updateData = { ...editUserData }
+      if (!updateData.password) {
+        delete updateData.password
+      }
+      await updateUser(userToEdit.id, updateData)
+      toast.success("Usuario actualizado correctamente")
+      setIsEditDialogOpen(false)
+      setUserToEdit(null)
+      setEditUserData({
+        email: "",
+        username: "",
+        name: "",
+        password: ""
+      })
+      loadUsers()
+    } catch (error) {
+      console.error("Error updating user:", error)
+      toast.error("Error al actualizar el usuario")
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -217,6 +265,68 @@ export function UsersList() {
             </form>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Editar Usuario</DialogTitle>
+              <DialogDescription>
+                Actualiza la información del usuario aquí. Haz clic en guardar cuando termines.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateUser} className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-name" className="text-right">Nombre Completo</Label>
+                <Input
+                  id="edit-name"
+                  placeholder="Ej: Juan Pérez"
+                  value={editUserData.name}
+                  onChange={(e) => setEditUserData({ ...editUserData, name: e.target.value })}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-username" className="text-right">Usuario</Label>
+                <Input
+                  id="edit-username"
+                  value={editUserData.username}
+                  onChange={(e) => setEditUserData({ ...editUserData, username: e.target.value })}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-email" className="text-right">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editUserData.email}
+                  onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-password" className="text-right">Contraseña</Label>
+                <Input
+                  id="edit-password"
+                  type="password"
+                  placeholder="Dejar vacío para no cambiar"
+                  value={editUserData.password}
+                  onChange={(e) => setEditUserData({ ...editUserData, password: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Guardar cambios
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className="border-none shadow-premium">
@@ -302,9 +412,9 @@ export function UsersList() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenEdit(user)}>Editar</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => setUserToDelete(user.id)}
                             >
